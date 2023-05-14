@@ -4,7 +4,7 @@ import CATEGORY_TYPE from "./category";
 import SUB_CATEGORY_TYPE from "./subcategory";
 
 export default interface POST_TYPE extends Document {
-  writer: USER_TYPE;
+  author: USER_TYPE;
   title: string;
   description: string;
   headerImgUrl?: string;

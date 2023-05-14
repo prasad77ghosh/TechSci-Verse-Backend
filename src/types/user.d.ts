@@ -6,7 +6,7 @@ export default interface USER_TYPE extends Document {
   role: ROLE;
   name: string;
   email: string;
-  country: string;
+  country?: string;
   profession?: string;
   expertiseInSubjects?: string[];
   yearOfExperience?: number;
@@ -22,7 +22,7 @@ export default interface USER_TYPE extends Document {
   isVerified: boolean;
   followers: USER_TYPE[];
   following: USER_TYPE[];
-  socialLink?: {
+  socialLinks?: {
     facebook?: string;
     youtube?: string;
     instagram?: string;
