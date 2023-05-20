@@ -1,5 +1,6 @@
 import { model, Model, Schema } from "mongoose";
 import { USER_TYPE } from "../types";
+import { PasswordHashServices } from "../services";
 
 const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
   {
@@ -106,7 +107,12 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
   {
     timestamps: true,
   }
-);
+).pre<USER_TYPE>("save", async function (next) {
+  this.password = this.password
+    ? await new PasswordHashServices().hash(this.password)
+    : undefined;
+  next();
+});
 
 const UserSchema = model<USER_TYPE, Model<USER_TYPE>>("User", userSchema);
 export default UserSchema;
