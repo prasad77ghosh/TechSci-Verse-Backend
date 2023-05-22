@@ -1,6 +1,6 @@
 import { model, Model, Schema } from "mongoose";
 import { USER_TYPE } from "../types";
-import { PasswordHashServices } from "../services";
+import { PasswordHashService } from "../services";
 
 const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
   {
@@ -23,14 +23,17 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
       type: String,
       index: true,
       required: [true, "Email is required"],
+      trim: true,
     },
 
     country: {
       type: String,
+      trim: true,
     },
 
     profession: {
       type: String,
+      trim: true,
     },
 
     expertiseInSubjects: {
@@ -65,6 +68,7 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
 
     slug: {
       type: String,
+      trim: true,
     },
 
     status: {
@@ -109,10 +113,11 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
   }
 ).pre<USER_TYPE>("save", async function (next) {
   this.password = this.password
-    ? await new PasswordHashServices().hash(this.password)
+    ? await new PasswordHashService().hash(this.password)
     : undefined;
   next();
 });
 
 const UserSchema = model<USER_TYPE, Model<USER_TYPE>>("User", userSchema);
+UserSchema.syncIndexes();
 export default UserSchema;
