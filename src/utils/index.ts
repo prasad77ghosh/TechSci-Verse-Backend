@@ -1,1 +1,1 @@
-export { default as generateSlugName } from "./slug.utils";
+export { generateSlugName, generateVerificationToken } from "./utility";

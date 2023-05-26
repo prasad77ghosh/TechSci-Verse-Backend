@@ -7,9 +7,10 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
     role: {
       type: String,
       enum: {
-        values: ["SUPER-ADMIN", "ADMIN"],
-        message: "Role must be SUPER-ADMIN or ADMIN",
+        values: ["SUPER-ADMIN", "ADMIN", "READER"],
+        message: "Role must be SUPER-ADMIN, ADMIN or READER",
       },
+      default: "READER",
     },
 
     name: {
@@ -24,6 +25,10 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
       index: true,
       required: [true, "Email is required"],
       trim: true,
+    },
+
+    verificationToken: {
+      type: String,
     },
 
     country: {

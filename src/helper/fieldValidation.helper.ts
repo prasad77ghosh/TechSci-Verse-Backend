@@ -2,11 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { validationResult } from "express-validator";
 import { ErrorHandler } from "../services";
 
-export const filedValidationError = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const filedValidationError = (req: Request, next: NextFunction) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(
