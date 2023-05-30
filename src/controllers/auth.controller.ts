@@ -12,7 +12,7 @@ class AuthController {
       const profile = req?.files?.profile;
 
       // validation error checking
-      filedValidationError(req, next);
+      filedValidationError(req);
 
       // if password mismatch
       if (password !== confirmPassword)

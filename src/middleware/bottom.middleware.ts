@@ -4,8 +4,8 @@ import { MongoParseError } from "mongodb";
 
 class BottomMiddleware {
   constructor(app: Application) {
-    app.use(this.errorHandler);
     app.use(this.routeNotFoundErrorHandler);
+    app.use(this.errorHandler);
   }
 
   public routeNotFoundErrorHandler(
@@ -16,42 +16,33 @@ class BottomMiddleware {
     next(new ErrorHandler("No route found, Please check your urls.", 400));
   }
   public errorHandler(
-    err: any,
+    err: ErrorHandler,
     req: Request,
     res: Response,
     next: NextFunction
   ) {
     err.message = err.message || "Internal Server Error";
     err.statusCode = err.statusCode || 500;
-
     if (err.name === "CastError") {
-      const message = `Resource not found: invalid ${err.path}`;
-      err = new ErrorHandler(err, 400);
+      err.message = `Resource not found`;
+      err.statusCode = 400;
     }
 
     // Mongoose duplicate key error
     if (err.statusCode === 11000) {
-      const message = `Duplicate ${Object.keys(err.keyValue)} Entered`;
-      err = new ErrorHandler(message, 400);
+      err.message = `Duplicate key Entered`;
+      err.statusCode = 400;
     }
 
     // Wrong JWT error
     if (err.name === "JsonWebTokenError") {
-      const message = `Json Web Token is invalid, Try again `;
-      err = new ErrorHandler(message, 400);
+      err.message = `Json Web Token is invalid, Try again`;
+      err.statusCode = 400;
     }
 
     if (err instanceof MongoParseError) {
-      const message = "Your Database not connected properly";
-      err = new ErrorHandler(message, 500);
+      err.message = `Json Web Token is invalid, Try again`;
     }
-
-    if (err.name === "TokenExpiredError") {
-      // JWT EXPIRE error
-      const message = `Json Web Token is Expired, Try again `;
-      err = new ErrorHandler(message, 400);
-    }
-
     res.status(err.statusCode).json({
       success: false,
       message: err.message,
