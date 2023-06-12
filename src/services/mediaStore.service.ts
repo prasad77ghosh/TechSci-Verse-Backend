@@ -11,8 +11,15 @@ export default class MediaStoreService {
   }
 
   //upload file in to cloudinary
-  async upload(file: any, folder: string): Promise<UploadApiResponse> {
+  async upload({
+    file,
+    folder,
+  }: {
+    file: any;
+    folder: string;
+  }): Promise<UploadApiResponse> {
     try {
+      console.log(file);
       const result = await cloudinary.v2.uploader.upload(file.path, { folder });
       return result;
     } catch (error) {

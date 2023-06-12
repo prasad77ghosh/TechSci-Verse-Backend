@@ -1,1 +1,1 @@
-export { filedValidationError } from "./fieldValidation.helper";
+export { fieldValidateError } from "./fieldValidation.helper";

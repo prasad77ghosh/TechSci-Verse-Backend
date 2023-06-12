@@ -1,43 +1,40 @@
 import { NextFunction, Request, Response } from "express";
-import { EmailService, ErrorHandler, MediaStoreService } from "../services";
+import { EmailService, MediaStoreService } from "../services";
 import { UserSchema } from "../models";
 import { generateSlugName, generateVerificationToken } from "../utils";
-import { filedValidationError } from "../helper";
 import { body, query } from "express-validator";
-
+import { Conflict, InternalServerError, NotFound } from "http-errors";
+import { fieldValidateError } from "../helper";
 class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const { name, email, password, confirmPassword } = req.body;
-      const profile = req?.files?.profile;
 
       // validation error checking
-      filedValidationError(req);
+      fieldValidateError(req);
 
       // if password mismatch
       if (password !== confirmPassword)
-        return next(
-          new ErrorHandler(
-            "Your password and confirmPassword does not match",
-            422
-          )
-        );
+        throw new NotFound("Password and confirmPassword does not match");
 
+      const profile = req?.files;
       //profile picture upload
-      const profileInfo = profile
-        ? await new MediaStoreService().upload(profile, "User")
-        : undefined;
+      const profileInfo = await new MediaStoreService().upload({
+        file: profile,
+        folder: "User",
+      });
+
       console.log(profileInfo);
 
       //check duplicate user
       const checkDuplicate = await UserSchema.findOne({ email });
       if (checkDuplicate)
-        return next(new ErrorHandler("This user already exists", 409));
+        throw new Conflict("user already exists with the same email");
 
       //generate slugName
       const slugName = generateSlugName(name);
       const token = generateVerificationToken();
-
+      console.log(slugName, token);
       const registerUser = await UserSchema.create({
         name,
         email,
@@ -49,8 +46,8 @@ class AuthController {
       });
 
       if (!registerUser)
-        return next(
-          new ErrorHandler("Something went wrong. User is not registered", 500)
+        throw new InternalServerError(
+          "Something went wrong, user not registered"
         );
 
       // Verification email sending
@@ -58,8 +55,8 @@ class AuthController {
         "host"
       )}/verify-email?token=${token}`;
 
-      await new EmailService().mailSend({
-        email,
+      await new EmailService().emailSend({
+        emails: email,
         subject: "Email Verification Link",
         message: `Hi ${name} you register successfully.. \n Click on this link ${verificationLink} to verify your email`,
       });
@@ -86,10 +83,10 @@ export const AuthControllerValidator = {
       .withMessage("Name is required")
       .isString()
       .withMessage("Name must be a string")
-      .isLength({ min: 3 })
-      .withMessage("Name must be at least 3 characters long")
       .isLength({ max: 50 })
-      .withMessage("Name must be at most 50 characters long"),
+      .withMessage("Name must be at most 50 characters long")
+      .isLength({ min: 3 })
+      .withMessage("Name must be at least 3 characters long"),
     body("email")
       .not()
       .isEmpty()
@@ -97,27 +94,22 @@ export const AuthControllerValidator = {
       .isEmail()
       .withMessage("provide email is not a valid email address")
       .normalizeEmail()
-      .isLength({ min: 3 })
-      .withMessage("Email must be at least 3 characters long.")
       .isLength({ max: 50 })
-      .withMessage("Email must be at most 50 characters long."),
+      .withMessage("Email must be at most 50 characters long.")
+      .isLength({ min: 3 })
+      .withMessage("Email must be at least 3 characters long."),
     body("password")
       .not()
       .isEmpty()
       .withMessage("Password is required")
-      .isAlphanumeric()
       .isLength({ min: 8 })
       .withMessage("Password must be at least 8 characters long.")
+      .matches(/[A-Z]/)
+      .withMessage("Password must contain at least one Capital letter")
       .matches(/\d/)
       .withMessage("Password must contain at least one digit")
-      .matches(/[a-zA-Z]/)
-      .withMessage("Password must contain at least one letter")
       .matches(/[!@#$%^&*(),.?":{}|<>]/)
       .withMessage("Password must contain at least one special character"),
-    body("confirmPassword")
-      .not()
-      .isEmpty()
-      .withMessage("Confirm Password is required"),
   ],
 };
 

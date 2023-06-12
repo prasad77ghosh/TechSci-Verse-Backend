@@ -1,17 +1,16 @@
-import { Request, Response, NextFunction } from "express";
+import { Request } from "express";
 import { validationResult } from "express-validator";
-import { ErrorHandler } from "../services";
+import { BadRequest } from "http-errors";
 
-export const filedValidationError = (req: Request) => {
+export const fieldValidateError = (req: Request) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    throw new ErrorHandler(
+    throw new BadRequest(
       errors
         .array()
         .map((errors) => errors.msg)
         .join()
-        .replace(/[,]/g, " and "),
-      400
+        .replace(/[,]/g, " and ")
     );
   }
 };
