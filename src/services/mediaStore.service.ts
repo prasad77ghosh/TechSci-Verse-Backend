@@ -1,3 +1,4 @@
+import { UploadedFile } from "express-fileupload";
 import { CloudApiKey, CloudApiSecret, CloudName } from "../config";
 import cloudinary, { UploadApiResponse } from "cloudinary";
 
@@ -12,16 +13,33 @@ export default class MediaStoreService {
 
   //upload file in to cloudinary
   async upload({
-    file,
+    files,
     folder,
   }: {
-    file: any;
+    files: UploadedFile | UploadedFile[];
     folder: string;
   }): Promise<UploadApiResponse> {
     try {
-      console.log(file);
-      const result = await cloudinary.v2.uploader.upload(file.path, { folder });
-      return result;
+      let results: any;
+
+      if (Array.isArray(files)) {
+        files.forEach(async (file) => {
+          const uploadFile = await cloudinary.v2.uploader.upload(
+            file.tempFilePath,
+            {
+              folder,
+            }
+          );
+
+          results.push(uploadFile);
+        });
+      } else {
+        results = await cloudinary.v2.uploader.upload(files.tempFilePath, {
+          folder,
+        });
+      }
+
+      return results;
     } catch (error) {
       throw new Error("File does not uploaded in cloudinary..");
     }

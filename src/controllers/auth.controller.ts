@@ -17,14 +17,14 @@ class AuthController {
       if (password !== confirmPassword)
         throw new NotFound("Password and confirmPassword does not match");
 
-      const profile = req?.files;
+      const profile = req?.files?.profile;
       //profile picture upload
-      const profileInfo = await new MediaStoreService().upload({
-        file: profile,
-        folder: "User",
-      });
-
-      console.log(profileInfo);
+      const profileInfo = profile
+        ? await new MediaStoreService().upload({
+            files: profile,
+            folder: "User",
+          })
+        : undefined;
 
       //check duplicate user
       const checkDuplicate = await UserSchema.findOne({ email });
@@ -34,7 +34,6 @@ class AuthController {
       //generate slugName
       const slugName = generateSlugName(name);
       const token = generateVerificationToken();
-      console.log(slugName, token);
       const registerUser = await UserSchema.create({
         name,
         email,
