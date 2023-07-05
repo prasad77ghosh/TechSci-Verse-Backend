@@ -55,7 +55,7 @@ class AuthController {
       )}/verify-email?token=${token}`;
 
       await new EmailService().emailSend({
-        emails: email,
+        email,
         subject: "Email Verification Link",
         message: `Hi ${name} you register successfully.. \n Click on this link ${verificationLink} to verify your email`,
       });
@@ -63,7 +63,7 @@ class AuthController {
       res.status(200).json({
         success: true,
         message:
-          "You  Register successfully check your email to verify your email",
+          "You  Register successfully CHECK YOUR MAIL to verify your email",
         data: registerUser,
       });
     } catch (error) {

@@ -3,24 +3,27 @@ import nodemailer from "nodemailer";
 import { Email, Host, Password } from "../config";
 export default class EmailService {
   public emailSend({
-    emails,
+    email,
     subject,
     message,
     link,
   }: {
-    emails: string;
+    email: string;
     subject: string;
     message: string;
     link?: string;
   }): any {
     const emailCredentials = {
-      from: `TECH_SCI_VERSE <${Email}>`,
-      to: emails,
-      subject: subject,
+      from: Email,
+      to: email,
+      subject,
+      message,
       html: link
         ? template.linkEmail(message, link)
         : template.normalMailBody(message),
     };
+
+    console.log(email, subject, message);
     return new Promise((resolve, reject) => {
       const transport = nodemailer.createTransport({
         service: Host,
@@ -32,10 +35,11 @@ export default class EmailService {
       transport
         .sendMail(emailCredentials)
         .then((info) => {
+          console.log(info);
           return resolve(info);
         })
         .catch((err) => {
-          return resolve(err);
+          return reject(err);
         });
     });
   }
