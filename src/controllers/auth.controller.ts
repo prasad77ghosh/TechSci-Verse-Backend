@@ -3,7 +3,12 @@ import { EmailService, MediaStoreService } from "../services";
 import { UserSchema } from "../models";
 import { generateSlugName, generateVerificationToken } from "../utils";
 import { body, query } from "express-validator";
-import { Conflict, InternalServerError, NotFound } from "http-errors";
+import {
+  Conflict,
+  InternalServerError,
+  NotFound,
+  NotAcceptable,
+} from "http-errors";
 import { fieldValidateError } from "../helper";
 class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
@@ -34,6 +39,8 @@ class AuthController {
       //generate slugName
       const slugName = generateSlugName(name);
       const token = generateVerificationToken();
+      const expirationTime = new Date();
+      expirationTime.setHours(expirationTime.getHours() + 1);
       const registerUser = await UserSchema.create({
         name,
         email,
@@ -42,6 +49,7 @@ class AuthController {
         profileUrl: profileInfo?.url,
         slug: slugName,
         verificationToken: token,
+        verificationTokenExpiresAt: expirationTime,
       });
 
       if (!registerUser)
@@ -52,19 +60,49 @@ class AuthController {
       // Verification email sending
       const verificationLink = `${req.protocol}://${req.get(
         "host"
-      )}/verify-email?token=${token}`;
+      )}/api/v1/auth/verify-email?token=${token}`;
 
+      // sending email
       await new EmailService().emailSend({
         email,
-        subject: "Email Verification Link",
-        message: `Hi ${name} you register successfully.. \n Click on this link ${verificationLink} to verify your email`,
+        subject: "For Email Verification",
+        message: `Hi ${name} you register successfully.. In TechSciVerse And Click to the following button to verify your account`,
+        link: verificationLink,
       });
 
-      res.status(200).json({
+      res.json({
         success: true,
         message:
           "You  Register successfully CHECK YOUR MAIL to verify your email",
         data: registerUser,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // verify email
+  async verifyEMail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { token } = req.query;
+      if (!token) throw new NotFound("Your verification token not found.");
+
+      //search for user using verification token
+      const user = await UserSchema.findOne({
+        verificationToken: token,
+        verificationTokenExpiresAt: { $gt: Date.now() },
+      });
+
+      if (!user)
+        throw new NotAcceptable("This is a invalid token not acceptable");
+
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      user.verificationTokenExpiresAt = undefined;
+      user.save();
+      res.json({
+        success: true,
+        message: "Your Token verify successfully..",
       });
     } catch (error) {
       next(error);

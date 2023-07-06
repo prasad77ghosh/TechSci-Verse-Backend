@@ -6,7 +6,8 @@ export default interface USER_TYPE extends Document {
   role: ROLE;
   name: string;
   email: string;
-  verificationToken: string;
+  verificationToken: string | undefined;
+  verificationTokenExpiresAt: number | undefined;
   country?: string;
   profession?: string;
   expertiseInSubjects?: string[];
@@ -18,7 +19,7 @@ export default interface USER_TYPE extends Document {
   profileUrl?: string;
   profilePath?: string;
   slug?: string;
-  status: "ACTIVE" | "INACTIVE";
+  adminStatus: "ACTIVE" | "INACTIVE";
   isBlocked: boolean;
   isVerified: boolean;
   followers: USER_TYPE[];

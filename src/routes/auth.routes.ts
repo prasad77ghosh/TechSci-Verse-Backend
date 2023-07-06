@@ -17,5 +17,7 @@ export default class AuthRoutes {
       AuthControllerValidator.register,
       this.authController.register
     );
+
+    this.router.get("/verify-email", this.authController.verifyEMail);
   }
 }

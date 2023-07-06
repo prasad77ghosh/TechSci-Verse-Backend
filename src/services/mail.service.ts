@@ -23,7 +23,6 @@ export default class EmailService {
         : template.normalMailBody(message),
     };
 
-    console.log(email, subject, message);
     return new Promise((resolve, reject) => {
       const transport = nodemailer.createTransport({
         service: Host,

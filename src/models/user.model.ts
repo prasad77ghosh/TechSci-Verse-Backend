@@ -31,6 +31,10 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
       type: String,
     },
 
+    verificationTokenExpiresAt: {
+      type: Number,
+    },
+
     country: {
       type: String,
       trim: true,
@@ -76,7 +80,7 @@ const userSchema = new Schema<USER_TYPE, Model<USER_TYPE>>(
       trim: true,
     },
 
-    status: {
+    adminStatus: {
       type: String,
       enum: ["ACTIVE", "INACTIVE"],
       default: "INACTIVE",
